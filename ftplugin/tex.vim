@@ -23,7 +23,7 @@ let mapleader = '`'
 " With b:DoubleDollars = 1, C-F1 - C-F5 will not work in nested environments.
 
 " Auctex-style macros for Latex typing.
-" You will have to customize the functions RunLatex(), Xdvi(), 
+" You will have to customize the functions RunLatex(), Xpdf(), 
 " and the maps for inserting template files, on lines 168 - 169
 
 " Thanks to Peppe Guldberg for important suggestions.
@@ -49,8 +49,7 @@ let b:template_4 = '~/Storage/Latex/exam.tex'
 "let b:latex_command = "! xterm -bg ivory -fn 7x14 -e latex \\\\nonstopmode \\\\input\\{%\\}; cat %<.log"
 "let b:latex_command = "! xterm -e latex \\\\nonstopmode \\\\input\\{%\\}"
 let b:latex_command = '!latexmk -pdf -pdflatex="pdflatex -interactive=nonstopmode -synctex=1" -use-make %'
-let b:dvi_viewer_command = "! xdvi -expert -s 6 -margins 2cm -geometry 750x950 %< &"
-"let b:dvi_viewer_command = "! kdvi %< &"
+let b:pdf_viewer_command = "! okular % &"
 
 " Switch to the directory of the tex file.  Thanks to Fritz Mehner.
 " This is useful for starting xdvi, or going to the next tex error.
@@ -67,7 +66,7 @@ let b:windows = 0
 
 " }}}
 " "========================================================================="
-" Mapping for Xdvi Search   {{{
+" Mapping for Xpdf Search   {{{
 
 noremap <buffer> <C-LeftMouse> :execute "!xdvi -name -xdvi -sourceposition ".line(".").expand("%")." ".expand("%:r").".dvi"<CR><CR>
 
@@ -351,8 +350,8 @@ noremap <buffer><silent> \lc :call <SID>CheckReferences('Citation', 'cite')<CR><
 noremap <buffer><silent> \lg :call <SID>LookAtLogFile()<CR>gg/LaTeX Warning\\|^!<CR>
 
 " Run the Latex viewer;  change these bindings if you like.
-noremap <buffer><silent> <S-Esc> :call <SID>Xdvi()<CR><Space>
-inoremap <buffer><silent> <S-Esc> <Esc>:call <SID>Xdvi()<CR><Space>
+noremap <buffer><silent> <leader>f :call <SID>Xpdf()<CR><Space>
+inoremap <buffer><silent> <leader>f <Esc>:call <SID>Xpdf()<CR><Space>
 
 " Run Ispell on either the buffer, or the visually selected word.
 noremap <buffer><silent> <S-Insert> :w<CR>:!xterm -bg ivory -fn 10x20 -e ispell %<CR><Space>:e %<CR>:redraw<CR>:echo "No (more) spelling errors."<CR>
@@ -444,11 +443,11 @@ function! s:NextTexError()
 endfunction
 
 " Run xdvi
-function! s:Xdvi()
+function! s:Xpdf()
     update
     execute 'silent ' . b:latex_command
     execute 'silent ' . b:latex_command
-    execute b:dvi_viewer_command 
+    execute b:pdf_viewer_command 
 endfunction
 
 function! s:CheckReferences(name, ref)
@@ -525,7 +524,7 @@ endfunction
 "  KEY         LATEX                    AMSLATEX
 " 
 "  F1          equation                 equation
-"  F2          \[...\]                  equation*
+"  F2          figure                   figure*
 "  F3          eqnarray                 align
 "  F4          eqnarray*                align*
 "  F5          asks for environment     asks for environment
@@ -584,15 +583,7 @@ function! s:AmsLatex(var)
 endfunction
 
 function! s:FTwo(var)
-    if a:var == 0
-	if b:DoubleDollars == 0
-	    return "\\[\<CR>\<CR>\\]\<Up>"
-	else
-	    return "$$\<CR>\<CR>$$\<Up>"
-	endif
-    else
-	return "\\begin{equation*}\<CR>\<CR>\\end{equation*}\<Up>"
-    endif
+  return "\\begin{figure}[!htp]\<CR>\\begin{center}\<CR>\\includegraphics[width=\\textwidth]{}\<CR>\\caption{}\<CR>\\label{fig:}\<CR>\\end{center}\<CR>\\end{figure}\<Up>"
 endfunction
 function! s:FThree(var)
     if a:var == 0
@@ -934,10 +925,10 @@ map <buffer><silent> gw :call <SID>TeX_par()<CR>
 " In the third, type <M-v>, you're asked for a character to be capitalized.
 " inoremap <buffer> <M-v> \mathbf{}<Left>
 " inoremap <buffer> <Insert>b \mathbf{}<Left>
-inoremap <buffer> <M-v> <Left>\mathbf{<Right>}<Esc>h~a
-inoremap <buffer> <Insert>b <Left>\mathbf{<Right>}<Esc>h~a
-vnoremap <buffer> <M-v> <C-C>`>a}<Esc>`<i\mathbf{<Esc>
-vnoremap <buffer> <Insert>b <C-C>`>a}<Esc>`<i\mathbf{<Esc>
+" inoremap <buffer> <M-v> <Left>\mathbf{<Right>}<Esc>h~a
+" inoremap <buffer> <Insert>b <Left>\mathbf{<Right>}<Esc>h~a
+" vnoremap <buffer> <M-v> <C-C>`>a}<Esc>`<i\mathbf{<Esc>
+" vnoremap <buffer> <Insert>b <C-C>`>a}<Esc>`<i\mathbf{<Esc>
 "function! s:mathbf()
 "    echo 'Mathbf: '
 "    let c = nr2char(getchar())
@@ -1592,8 +1583,8 @@ nnoremenu 50.404 Latex.next\ cite\ error :call <SID>CheckReferences('Citation', 
 inoremenu 50.404 Latex.next\ cite\ error <Esc>:call <SID>CheckReferences('Citation', 'cite')<CR><Space>
 nnoremenu 50.405 Latex.view\ log\ file :call <SID>LookAtLogFile()<CR>
 inoremenu 50.405 Latex.view\ log\ file <Esc>:call <SID>LookAtLogFile()<CR>
-nnoremenu 50.406 Latex.view\ dvi\ \ \ \ \ Alt-Tab :call <SID>Xdvi()<CR><Space>
-inoremenu 50.406 Latex.view\ dvi\ \ \ \ \ Alt-Tab <Esc>:call <SID>Xdvi()<CR><Space>
+nnoremenu 50.406 Latex.view\ dvi\ \ \ \ \ Alt-Tab :call <SID>Xpdf()<CR><Space>
+inoremenu 50.406 Latex.view\ dvi\ \ \ \ \ Alt-Tab <Esc>:call <SID>Xpdf()<CR><Space>
 nnoremenu 50.407 Latex.run\ ispell\ \ \ Shift-Ins :w<CR>:silent ! xterm -bg ivory -fn 10x20 -e ispell %<CR>:e %<CR><Space>
 inoremenu 50.407 Latex.run\ ispell\ \ \ Shift-Ins <Esc>:w<CR>:silent ! xterm -bg ivory -fn 10x20 -e ispell %<CR>:e %<CR><Space>
 "nnoremenu 50.405 Latex.run\ engspchk :so .Vim/engspchk.vim<CR>
